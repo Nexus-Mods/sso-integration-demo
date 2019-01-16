@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+
+<script>
+
+    // Simple method to generate a UUID used as a request ID. ID's should ideally be in a standard UUID format
+    function uuidv4() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    // This can be edited to identify your registered app.
+    var application_slug = "vortex";
+
+    function connect() {
+        window.socket = new WebSocket("wss://sso.nexusmods.com");
+
+        // Connect to SSO service
+        socket.onopen = function (event) {
+            console.log("CONNECTION TO SSO OPEN;");
+
+            // Generate or retrieve a request ID and connection token (if we are reconnecting)
+            var uuid = null;
+            var token = null;
+            uuid = sessionStorage.getItem("uuid");
+            token = sessionStorage.getItem("connection_token");
+
+            if (uuid === undefined || uuid == null) {
+                uuid = uuidv4();
+                sessionStorage.setItem('uuid', uuid);
+            }
+
+            if (uuid !== undefined || uuid == null) {
+
+                var data = {
+                    id: uuid,
+                    token: token,
+                    protocol: 2
+                };
+
+                // Send the SSO request
+                socket.send(JSON.stringify(data));
+
+                // Once the request is active, we can send the user to the site to authorise the SSO, passing an
+                // identifier for an application.
+                window.open("https://www.nexusmods.com/sso?id="+uuid+"&application_id="+application_slug);
+            }
+            else
+                console.error("ID was not calculated correctly.")
+        };
+
+        // When the client is closed, attempt to reconnect - this will use the same connection token as the initial request
+        socket.onclose = function(event) {
+            console.log("CONNECTION CLOSED;")
+
+            setTimeout(connect(), 5);
+        }
+
+        // When the client receives a message
+        socket.onmessage = function(event) {
+
+            // All messages from protocol > 2 pass all messages back to the client by using the format type:value
+            var data = event.data.toString();
+            var strArray = data.split(":");
+
+            // The message from the SSO will be one of two types of message, depending on the protocol being used.
+
+            // If it begins with "connection_token" then this message is simply informing the client what token to use
+            // in case of a reconnection.
+            if (strArray[0] === 'connection_token')
+            {
+                // store the connection token in case we need to reconnect
+                sessionStorage.setItem('connection_token', strArray[1]);
+            }
+            else if (strArray[0] === 'api_key')
+            {
+                // This is received when the user has approved the SSO request and the SSO is now returning with that user's API key
+                console.log("API Key Received: " + strArray[1]);
+            }
+
+        }
+    }
+
+    connect();
+
+
+
+</script>
+</html>
