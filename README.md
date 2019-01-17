@@ -32,9 +32,11 @@ SSO will send a message back with the connection_token mentioned above - this is
 subsequent connections (usually due to disconnects and network errors). The response from the SSO will
 look something like this:
 
-`connection_token:yNiByflxsnptCuIXpMPMkQ60pedN6msN`
+`{"success":true,"data":{"connection_token":"X5SjO3P4i8tiBgMdYVTCh3z57ZnWVK5z"},"error":null}`
 
-The browser can also be opened and the authorise page can be shown.
+The response will always contain a `success` attribute, along with `error`, to be used for error reporting.
+
+The browser can now be opened and the authorise page can be shown.
 
     // Open the browser window, using the uuid and your application's reference
     window.open("https://www.nexusmods.com/sso?id="+uuid+"&application_id="+application_slug);
@@ -45,6 +47,6 @@ team for more information.
 The user will be shown an 'authorise' page, or the login page if they are not logged in. Once they have authorised the token, 
 the API key will be sent through the websocket in the following format
 
-`api_key:VX2PMnc4T5Q3dUFmjE45WyRyZ3VkKzIvYVJiMUdick5XQU9QWHdUbFo4...`
+`{"success":true,"data":{"api_key":"VX2PMnc4T5Q3dUFmjE45WyRyZ3VkKzIvYVJiMUdick5XQU9QWHdUbFo4..."},"error":null}`
 
 This API key can be stored by the client and sent as a header for every HTTP request for the API.
