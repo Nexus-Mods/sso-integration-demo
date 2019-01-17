@@ -9,7 +9,7 @@ Connect to the SSO service, via a websocket client:
 
 Once connected, retrieve the request ID and connection_token used on the previous connection.
 
-    // retreive previous uuid and token
+    // retrieve previous uuid and token
     uuid = sessionStorage.getItem("uuid");
     token = sessionStorage.getItem("connection_token");
     
