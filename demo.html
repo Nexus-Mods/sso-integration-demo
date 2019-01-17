@@ -34,12 +34,12 @@
             uuid = sessionStorage.getItem("uuid");
             token = sessionStorage.getItem("connection_token");
 
-            if (uuid === undefined || uuid == null) {
+            if (uuid == null) {
                 uuid = uuidv4();
                 sessionStorage.setItem('uuid', uuid);
             }
 
-            if (uuid !== undefined || uuid == null) {
+            if (uuid !== null) {
 
                 var data = {
                     id: uuid,
@@ -62,37 +62,38 @@
         socket.onclose = function(event) {
             console.log("CONNECTION CLOSED;")
 
-            setTimeout(connect(), 5);
+            setTimeout(connect(), 5000);
         }
 
         // When the client receives a message
         socket.onmessage = function(event) {
 
             // All messages from protocol > 2 pass all messages back to the client by using the format type:value
-            var data = event.data.toString();
-            var strArray = data.split(":");
+            var response = JSON.parse(event.data);
 
-            // The message from the SSO will be one of two types of message, depending on the protocol being used.
-
-            // If it begins with "connection_token" then this message is simply informing the client what token to use
-            // in case of a reconnection.
-            if (strArray[0] === 'connection_token')
+            if (response && response.success)
             {
-                // store the connection token in case we need to reconnect
-                sessionStorage.setItem('connection_token', strArray[1]);
+                // If the response is valid, the data array will be available. Now we can check for what type of data is being returned.
+                if (response.data.hasOwnProperty('connection_token'))
+                {
+                    // store the connection token in case we need to reconnect
+                    sessionStorage.setItem('connection_token', response.data.connection_token);
+                }
+                else if (response.data.hasOwnProperty('api_key'))
+                {
+                    // This is received when the user has approved the SSO request and the SSO is now returning with that user's API key
+                    console.log("API Key Received: " + response.data.api_key);
+                }
             }
-            else if (strArray[0] === 'api_key')
+            else
             {
-                // This is received when the user has approved the SSO request and the SSO is now returning with that user's API key
-                console.log("API Key Received: " + strArray[1]);
+                // The SSO  will return an error attribute that can be used for error reporting
+                console.error("Something went wrong! " + response.error)
             }
-
         }
     }
 
     connect();
-
-
 
 </script>
 </html>
