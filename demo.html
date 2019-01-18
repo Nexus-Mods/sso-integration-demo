@@ -52,7 +52,7 @@
 
                 // Once the request is active, we can send the user to the site to authorise the SSO, passing an
                 // identifier for an application.
-                window.open("https://www.nexusmods.com/sso?id="+uuid+"&application_id="+application_slug);
+                window.open("https://www.nexusmods.com/sso?id="+uuid+"&application="+application_slug);
             }
             else
                 console.error("ID was not calculated correctly.")
